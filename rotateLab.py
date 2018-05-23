@@ -18,8 +18,6 @@ def do_rot(lab, theta):
     R = np.asarray([[c,-s],[s,c]])
     f = np.hstack( (lab[:,:,1].reshape(-1,1),
                     lab[:,:,2].reshape(-1,1)))
-
-
     r = np.dot(f, R)
     result[:,:,0] = lab[:,:,0]
     result[:,:,1] = r[:,0].reshape(h,w)
@@ -33,9 +31,11 @@ def do_rot(lab, theta):
 
 
 def all_files(in_dir, out_dir, rotate):
-    for f in glob.glob('%s/*' % in_dir):
+    files = glob.glob('%s/*' % in_dir)
+    for f in files:
         img = io.imread(f)
         lab = rgb2lab(img)
+
         if rotate is None:
             #mask = np.logical_and(25.<lab[:,:,0], lab[:,:,0]<75.)
             #plt.figure(1),plt.imshow(lab[:,:,0]), plt.colorbar()
@@ -70,6 +70,9 @@ def read_options():
 
 
 if __name__ == "__main__":
+    reload(sys)
+    sys.setdefaultencoding('utf8')
+
     option = {
         "verbose" : False,
         "rotate"  : None,
@@ -80,5 +83,5 @@ if __name__ == "__main__":
 
     all_files(option["in"], option["out"], option["rotate"])
 
-        #plt.imshow(lab2rgb(r))
-        #plt.show()
+    #plt.imshow(lab2rgb(r))
+    #plt.show()
