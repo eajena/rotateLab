@@ -18,6 +18,9 @@ def do_rot(lab, theta):
     R = np.asarray([[c,-s],[s,c]])
     f = np.hstack( (lab[:,:,1].reshape(-1,1),
                     lab[:,:,2].reshape(-1,1)))
+    m = np.mean(f,axis=0)
+    if option["mean"]:
+        f-=m
     r = np.dot(f, R)
     result[:,:,0] = lab[:,:,0]
     result[:,:,1] = r[:,0].reshape(h,w)
@@ -25,6 +28,8 @@ def do_rot(lab, theta):
     if option["verbose"]:
         plt.scatter(lab[:,:,1],lab[:,:,2], color="blue")
         plt.scatter(result[:,:,1],result[:,:,2], color="green")
+        plt.scatter(result[:,:,1],result[:,:,2], color="green")
+        plt.plot(0, 0, 'ro')
         plt.axes().set_aspect('equal')
         plt.show()
     return result
@@ -56,7 +61,7 @@ def all_files(in_dir, out_dir, rotate):
 
 def read_options():
   try:
-    opts, args = getopt.getopt(sys.argv[1:], 'ar:i:o:',
+    opts, args = getopt.getopt(sys.argv[1:], 'ar:i:o:vm',
                         ["analyse","rotate=","in=","out="])
   except getopt.GetoptError as err:
     leave(str(err))
@@ -66,6 +71,7 @@ def read_options():
     elif o in ("-r","--rotate"):  option["rotate"] = float(a)
     elif o in ("-i","--in"):      option["in"] = a
     elif o in ('-o',"--out"):     option["out"] = a
+    elif o in ('-m',"--mean"):    option["mean"] = True
     elif o in ('-v',"--verbose"): option["verbose"] = True
     else: assert False, "unhandled option: %s" % str(o)
 
@@ -78,7 +84,8 @@ if __name__ == "__main__":
     sys.setdefaultencoding('utf8')
 
     option = {
-        "verbose" : True,
+        "verbose" : False,
+        "mean"    : False,
         "rotate"  : None,
         "in"      : "in",
         "out"     : "out"
