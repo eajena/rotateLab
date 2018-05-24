@@ -34,6 +34,8 @@ def all_files(in_dir, out_dir, rotate):
     files = glob.glob('%s/*' % in_dir)
     for f in files:
         img = io.imread(f)
+        if img.shape[2]==4:
+            img = img[:,:,:3]
         lab = rgb2lab(img)
 
         if rotate is None:
@@ -47,6 +49,8 @@ def all_files(in_dir, out_dir, rotate):
             io.imsave("%s/%.4f-%s" % (out_dir, m, os.path.basename(f)), img)
         else:
             r = lab2rgb(do_rot(lab, rotate))
+            if f[-4:]==".tif" or f[-5:]==".tiff":
+                f+=".jpg"
             io.imsave("%s/%s" % (out_dir, os.path.basename(f)), r)
 
 
@@ -65,8 +69,8 @@ def read_options():
     elif o in ('-v',"--verbose"): option["verbose"] = True
     else: assert False, "unhandled option: %s" % str(o)
 
-    assert os.path.isdir(option["in"]), "No such directory: %s" % option["in"]
-    assert os.path.isdir(option["out"]), "No such directory: %s" % option["out"]
+  assert os.path.isdir(option["in"]), "No such directory: %s" % option["in"]
+  assert os.path.isdir(option["out"]), "No such directory: %s" % option["out"]
 
 
 if __name__ == "__main__":
@@ -74,7 +78,7 @@ if __name__ == "__main__":
     sys.setdefaultencoding('utf8')
 
     option = {
-        "verbose" : False,
+        "verbose" : True,
         "rotate"  : None,
         "in"      : "in",
         "out"     : "out"
