@@ -25,46 +25,43 @@ def do_rot(lab, theta):
     result[:,:,0] = lab[:,:,0]
     result[:,:,1] = r[:,0].reshape(h,w)
     result[:,:,2] = r[:,1].reshape(h,w)
-    if option["verbose"]:
-        plt.scatter(lab[:,:,1],lab[:,:,2], color="blue")
-        plt.scatter(result[:,:,1],result[:,:,2], color="green")
-        plt.scatter(result[:,:,1],result[:,:,2], color="green")
-        plt.plot(0, 0, 'ro')
-        plt.axes().set_aspect('equal')
-        plt.show()
+    if option["plots"]:
+        plt.scatter(lab[:,:,1],lab[:,:,2], color="blue", alpha=0.01)
+        plt.scatter(result[:,:,1],result[:,:,2], color="green", alpha=0.01)
+        plt.plot(0,0, 'wo')
+        plt.plot(m[0], m[1], 'yo')
+        mr = np.mean(r,axis=0)
+        plt.plot(mr[0], mr[1], 'ro')
+        plt.xlim([-100,100])
+        plt.ylim([-100,100])
     return result
 
 
 def all_files(in_dir, out_dir, rotate):
     files = glob.glob('%s/*' % in_dir)
     for f in files:
+        print f
         img = io.imread(f)
         if img.shape[2]==4:
             img = img[:,:,:3]
         lab = rgb2lab(img)
 
-        if rotate is None:
-            #mask = np.logical_and(25.<lab[:,:,0], lab[:,:,0]<75.)
-            #plt.figure(1),plt.imshow(lab[:,:,0]), plt.colorbar()
-            #plt.figure(2),plt.imshow(mask)
-            #plt.show()
-            #m = np.std(lab[:,:,1][mask]) * np.std(lab[:,:,2][mask])
-            m = np.std(lab[:,:,1]) * np.std(lab[:,:,2])
-            print m, f
-            io.imsave("%s/%.4f-%s" % (out_dir, m, os.path.basename(f)), img)
-        else:
-            r = lab2rgb(do_rot(lab, rotate))
-            if f[-4:]==".tif" or f[-5:]==".tiff":
-                f+=".jpg"
-            io.imsave("%s/%s" % (out_dir, os.path.basename(f)), r)
+        r = lab2rgb(do_rot(lab, rotate))
+        if f[-4:]==".tif" or f[-5:]==".tiff":
+            f+=".jpg"
+        io.imsave(os.path.join(out_dir, os.path.basename(f)), r)
+        if option["plots"]:
+            plt.savefig(os.path.join(option["plots"], os.path.basename(f)));
+            plt.close()
 
 
 def read_options():
   try:
-    opts, args = getopt.getopt(sys.argv[1:], 'ar:i:o:vm',
-                        ["analyse","rotate=","in=","out="])
+    opts, args = getopt.getopt(sys.argv[1:], 'r:i:o:mp:',
+                        ["rotate=","in=","out=","plots="])
   except getopt.GetoptError as err:
-    leave(str(err))
+    print "Error:", err
+    exit(1)
 
   for o, a in opts:
     if   o in ('-a',"--analyze"): option["rotate"] = None
@@ -72,27 +69,24 @@ def read_options():
     elif o in ("-i","--in"):      option["in"] = a
     elif o in ('-o',"--out"):     option["out"] = a
     elif o in ('-m',"--mean"):    option["mean"] = True
-    elif o in ('-v',"--verbose"): option["verbose"] = True
+    elif o in ('-p',"--plots"):   option["plots"] = a
     else: assert False, "unhandled option: %s" % str(o)
 
-  assert os.path.isdir(option["in"]), "No such directory: %s" % option["in"]
-  assert os.path.isdir(option["out"]), "No such directory: %s" % option["out"]
+  assert os.path.isdir(option["in"]), "No such dir: %s" % option["in"]
+  assert os.path.isdir(option["out"]), "No such dir: %s" % option["out"]
+  assert (not option["plots"] or
+         os.path.isdir(option["out"])), "No such dir: %s" % option["plots"]
 
 
 if __name__ == "__main__":
     reload(sys)
     sys.setdefaultencoding('utf8')
-
     option = {
-        "verbose" : False,
         "mean"    : False,
         "rotate"  : None,
+        "plots"   : None,
         "in"      : "in",
         "out"     : "out"
     }
     read_options()
-
     all_files(option["in"], option["out"], option["rotate"])
-
-    #plt.imshow(lab2rgb(r))
-    #plt.show()
