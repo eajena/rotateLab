@@ -34,6 +34,7 @@ def do_rot(lab, theta):
         plt.plot(mr[0], mr[1], 'ro')
         plt.xlim([-100,100])
         plt.ylim([-100,100])
+        plt.gca().set_aspect('equal', adjustable='box')
     return result
 
 
@@ -47,8 +48,7 @@ def all_files(in_dir, out_dir, rotate):
         lab = rgb2lab(img)
 
         r = lab2rgb(do_rot(lab, rotate))
-        if f[-4:]==".tif" or f[-5:]==".tiff":
-            f+=".jpg"
+        f += ".jpg"
         io.imsave(os.path.join(out_dir, os.path.basename(f)), r)
         if option["plots"]:
             plt.savefig(os.path.join(option["plots"], os.path.basename(f)));
