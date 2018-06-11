@@ -9,7 +9,7 @@ from skimage import io
 from skimage.color import rgb2lab, lab2rgb
 
 
-def do_rot(lab, theta):
+def do_rot(lab, theta, filename):
     h,w,c = lab.shape
     assert c==3
     result = np.zeros_like(lab)
@@ -26,6 +26,7 @@ def do_rot(lab, theta):
     result[:,:,1] = r[:,0].reshape(h,w)
     result[:,:,2] = r[:,1].reshape(h,w)
     if option["plots"]:
+        plt.figure("scatter")
         plt.scatter(lab[:,:,1],lab[:,:,2], color="blue", alpha=0.01)
         plt.scatter(result[:,:,1],result[:,:,2], color="green", alpha=0.01)
         plt.plot(0,0, 'wo')
@@ -35,6 +36,15 @@ def do_rot(lab, theta):
         plt.xlim([-100,100])
         plt.ylim([-100,100])
         plt.gca().set_aspect('equal', adjustable='box')
+        plt.savefig(os.path.join(option["plots"], "plot-%s.jpg" % os.path.basename(filename)));
+        plt.close()
+        plt.figure("histogram")
+        hist, xe, ye = np.histogram2d(lab[:,:,1].flatten(), lab[:,:,2].flatten(), bins=(50,50))
+        plt.imshow(hist.T, interpolation='none', origin='low', aspect='equal',
+                   extent=[xe[0], xe[-1], ye[0], ye[-1]])
+        plt.colorbar()
+        plt.savefig(os.path.join(option["plots"], "hist-%s.jpg" % os.path.basename(filename)));
+        plt.close()
     return result
 
 
@@ -47,13 +57,8 @@ def all_files(in_dir, out_dir, rotate):
             img = img[:,:,:3]
         lab = rgb2lab(img)
 
-        r = lab2rgb(do_rot(lab, rotate))
-        f += ".jpg"
-        io.imsave(os.path.join(out_dir, os.path.basename(f)), r)
-        if option["plots"]:
-            plt.savefig(os.path.join(option["plots"], os.path.basename(f)));
-            plt.close()
-
+        r = lab2rgb(do_rot(lab, rotate, f))
+        io.imsave(os.path.join(out_dir, "%s.jpg" % os.path.basename(f)), r)
 
 def read_options():
   try:
